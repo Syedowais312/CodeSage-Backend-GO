@@ -1,0 +1,44 @@
+# Go binaries & build outputs
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/bin/
+/build/
+/dist/
+/release/
+
+# Go coverage files
+*.cover
+*.cov
+*.prof
+
+# Go workspace files
+go.work
+go.work.sum
+
+# Vendor (if you run go mod vendor)
+/vendor/
+
+# Environment & config files
+.env
+.env.*
+*.env
+*.local
+config.yaml
+config.local.yaml
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
