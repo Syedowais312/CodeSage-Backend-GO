@@ -1,4 +1,4 @@
-// github/api.go - Add this new file to handle GitHub API calls
+// github/api.go - Add this neew file to handle GitHub API calls
 package github
 
 import (

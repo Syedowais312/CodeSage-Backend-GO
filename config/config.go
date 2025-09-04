@@ -11,6 +11,7 @@ type Config struct {
 	GitHubToken string
 	OpenAIKey   string
 	GeminiKey   string
+	huggingfaceKey string
 }
 
 func Load() *Config {
@@ -22,6 +23,7 @@ func Load() *Config {
 		GitHubToken: os.Getenv("GITHUB_TOKEN"),
 		OpenAIKey:   os.Getenv("OPENAI_API_KEY"),
 		GeminiKey:   os.Getenv("GEMINI_API_KEY"),
+		huggingfaceKey:  os.Getenv("HF_API_KEY"),
 	}
 }
 func getEnv(key, fallback string) string {

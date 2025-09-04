@@ -42,39 +42,13 @@ func AnalyzeWithGemini(diff, title string) (string, error) {
         diff = diff[:8000] + "\n... (truncated for analysis)"
     }
     
-    // Enhanced prompt for better code review
-    prompt := fmt.Sprintf(`You are CodeSage AI, a helpful code review assistant. Analyze this Pull Request and provide constructive feedback.
+  prompt := fmt.Sprintf(`Review this code change like a friendly senior developer:
 
-**PR Title:** %s
+**%s**
 
-**Code Changes:**
 %s
 
-Please provide a structured review covering:
-
-### 🔍 Summary
-Brief overview of what this PR does.
-
-### ✅ What's Good
-Highlight positive aspects of the code.
-
-### 🐛 Potential Issues
-- Any bugs or logical errors you spot
-- Edge cases that might not be handled
-
-### 🔒 Security Considerations
-- Any security vulnerabilities or concerns
-- Authentication/authorization issues
-
-### ⚡ Performance & Best Practices
-- Performance improvements or concerns
-- Code quality and maintainability suggestions
-
-### 💡 Suggestions
-Specific, actionable recommendations for improvement.
-
-Keep your feedback constructive, educational, and focus on the most important issues first.`, title, diff)
-    
+Give me 2-3 key points about this change - what's good, what needs attention, any quick suggestions. Keep it conversational and practical.`, title, diff)  
     // Build request
     reqBody := GeminiRequest{
         Contents: []struct {
@@ -97,7 +71,7 @@ Keep your feedback constructive, educational, and focus on the most important is
         return "", fmt.Errorf("failed to marshal request: %v", err)
     }
     
-    url := "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey
+url := "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=" + apiKey
     
     resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
     if err != nil {
