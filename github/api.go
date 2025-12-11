@@ -1,4 +1,4 @@
-// github/api.go - Add this neew file to handle GitHub API calls
+// github/api.go - Add this new file to handle GitHub API calls
 package github
 
 import (
@@ -30,7 +30,7 @@ func GetPRFiles(owner, repo string, prNumber int, cfg *config.Config) ([]PullReq
         return nil, err
     }
     
-    // Add GitHub token for authentication
+    // Prefer installation token if available (set by caller via context of cfg.GitHubToken)
     req.Header.Set("Authorization", "Bearer "+cfg.GitHubToken)
     req.Header.Set("Accept", "application/vnd.github.v3+json")
     

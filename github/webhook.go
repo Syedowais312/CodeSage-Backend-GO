@@ -1,4 +1,4 @@
-// github/webhook.go - Fixed to handle both JSON and form-encoded data
+//webhook.go - to handle both JSON and form-encoded data
 package github
 
 import (
@@ -15,6 +15,7 @@ import (
 func HandleWebhook(c *gin.Context, cfg *config.Config) {
     fmt.Println("📥 GitHub webhook received")
     eventType := c.GetHeader("X-GitHub-Event")
+    // sig := c.GetHeader("X-Hub-Signature-256")
     
     switch eventType {
     case "pull_request":
@@ -44,11 +45,17 @@ func handlePullRequest(c *gin.Context, cfg *config.Config) {
         c.JSON(400, gin.H{"error": "Failed to read body"})
         return
     }
+    // Verify webhook signature for security
+    if !VerifyWebhookSignature(cfg.GitHubWebhookSecret, body, c.GetHeader("X-Hub-Signature-256")) {
+        fmt.Println("❌ Invalid webhook signature")
+        c.JSON(401, gin.H{"error": "invalid signature"})
+        return
+    }
     
     bodyStr := string(body)
     var payloadStr string
     
-    // Check if it's form-encoded data (starts with "payload=")
+    // if it's form-encoded data (starts with "payload=")
     if strings.HasPrefix(bodyStr, "payload=") {
         fmt.Println("🔍 Detected form-encoded payload")
         // URL decode the payload
@@ -64,7 +71,7 @@ func handlePullRequest(c *gin.Context, cfg *config.Config) {
         payloadStr = bodyStr
     }
     
-    // Debug: Print first 200 characters of the decoded payload
+    // Print first 200 characters of the decoded payload
     if len(payloadStr) > 200 {
         fmt.Printf("🔍 Decoded payload preview: %s...\n", payloadStr[:200])
     } else {
@@ -145,6 +152,29 @@ func handlePullRequest(c *gin.Context, cfg *config.Config) {
     
     fmt.Printf("📌 Analyzing PR #%d: \"%s\" by %s in %s/%s\n", prNumber, title, user, owner, repo)
     
+    // Extract installation ID for GitHub App context
+    instObj, _ := payload["installation"].(map[string]interface{})
+    var installationID int64
+    if instObj != nil {
+        if idf, ok := instObj["id"].(float64); ok {
+            installationID = int64(idf)
+        }
+    }
+
+    // If installed, switch cfg token to installation token for API calls
+    var restoreToken string
+    if installationID != 0 {
+        token, _, err := GetInstallationToken(cfg, installationID)
+        if err != nil {
+            fmt.Printf("❌ Failed to get installation token: %v\n", err)
+            c.JSON(500, gin.H{"error": "Failed to get installation token"})
+            return
+        }
+        restoreToken = cfg.GitHubToken
+        cfg.GitHubToken = token
+        defer func() { cfg.GitHubToken = restoreToken }()
+    }
+
     // Step 1: Get the file changes from GitHub
     fmt.Println("🔄 Fetching PR file changes from GitHub API...")
     files, err := GetPRFiles(owner, repo, prNumber, cfg)
